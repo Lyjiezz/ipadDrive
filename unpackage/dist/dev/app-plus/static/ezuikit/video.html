@@ -1,0 +1,1688 @@
+<!DOCTYPE html>
+<html lang="zh">
+	<head>
+		<meta charset="UTF-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+		<script type="text/javascript" src="https://js.cdn.aliyun.dcloud.net.cn/dev/uni-app/uni.webview.1.5.2.js">
+		</script>
+		<script src="./webview.js"></script>
+		<script src="./vue.js"></script>
+		<title></title>
+		<script src="./ezuikit.js"></script>
+		<script src="./axios.js"></script>
+		<!-- 引入样式 -->
+		<link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+		<!-- 引入组件库 -->
+		<script src="https://unpkg.com/element-ui/lib/index.js"></script>
+		
+		<script src='https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js'></script>
+		<link href='https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css' rel='stylesheet' />
+		
+		<!-- <link rel="stylesheet" href="./element.css">
+		<script src="./element.js"></script> -->
+		<style>
+			html {
+				height: 100%;
+				overflow: hidden;
+				margin: 0;
+				padding: 0;
+			}
+
+			body {
+				height: 100%;
+				margin: 0;
+				padding: 0;
+				background-color: #000;
+			}
+			.mapboxgl-ctrl {
+				display: none !important;
+			}
+			#video-container {
+				width: 100%;
+				height: 100%;
+				overflow: hidden;
+				margin-top: 70px;
+			}
+
+			#app {
+				position: absolute;
+				user-select: none;
+				/* left: 40px; */
+				top: 0;
+				z-index: 99;
+				width: 100%;
+				height: 100%;
+				/* transform: rotate(90.001deg); */
+				/* transform-origin: 197px 50%; */
+				/* height: 90%; */
+				overflow: hidden;
+			}
+			
+			#map {
+				position: absolute;
+				width: 25vw;
+				height: 20vh;
+				right: 0;
+				margin-top: 70px;
+			}
+
+			.full-top {
+				display: flex;
+				flex-direction: row;
+				justify-content: center;
+			}
+
+			.full-text {
+				color: #ffffff;
+				font-size: 14px;
+				padding: 10px;
+			}
+
+			.activeText {
+				white-space: nowrap;
+				color: #007AFF !important;
+			}
+
+			.defaultText {
+				white-space: nowrap;
+				color: #ffffff !important;
+			}
+
+			.fullCoverView {
+				width: 100%;
+				height: 100%;
+				/* width: 300px;
+			height: 300px; */
+				overflow: hidden;
+				/* background-color: rgba(255, 255, 0, 0.2); */
+			}
+
+			.bottom-main {
+				position: absolute;
+				bottom: 0;
+				width: 100%;
+			}
+
+			.full-top {
+				display: flex;
+				flex-direction: column;
+				position: absolute;
+				width: 100%;
+				z-index: 999;
+				top: 35px;
+				display: flex;
+				flex-direction: row;
+				justify-content: center;
+			}
+
+			.full-main {
+				display: flex;
+				flex-direction: column;
+				justify-content: space-between;
+				align-items: center;
+
+			}
+
+			.full-main-top {
+				display: flex;
+				width: 100%;
+				flex-direction: row;
+				flex-wrap: wrap;
+				/* justify-content: center; */
+				align-items: center;
+				/* margin-right: 70px; */
+			}
+
+			.full-main-top-item {
+				display: flex;
+				flex-direction: row;
+				/* width: 100px; */
+				margin: 5px;
+			}
+
+			/* .bottom-main-gears {
+			display: flex;
+			flex-direction: column;
+			position: absolute;
+			z-index: 999;
+			left: 50px;
+			bottom: 25px;
+		} */
+			.bottom-main-gears {
+				display: flex;
+				flex-direction: row;
+				position: absolute;
+				z-index: 999;
+				left: 40px;
+				bottom: 100px;
+			}
+
+			.bottom-main-gears-click {
+				display: flex;
+				flex-direction: column;
+				width: 20px;
+				height: 40px;
+				justify-content: center;
+				align-items: center;
+				/* border: 1px solid rebeccapurple; */
+			}
+
+			.bottom-main-gears-label {
+				display: flex;
+				flex-direction: column;
+				width: 30px;
+				height: 40px;
+				font-size: 13px;
+				color: #ffffff;
+				line-height: 40px;
+				/* border: 1px solid salmon; */
+
+			}
+
+			/* .bottom-main-gears-item {
+			width: 20px;
+			height: 40px;
+			color: #ffffff;
+			text-align: center;
+			line-height: 45px;
+			border: 1px solid #3583D1;
+		} */
+			.bottom-main-gears-item-active {
+				background: #3583D1;
+			}
+
+			/* 摇杆区域 */
+			.toucharea {
+				position: absolute;
+				z-index: 4;
+				/* transform: translate(-50%,-50%); */
+				border-radius: 50%;
+			}
+
+			.ball {
+				position: absolute;
+				z-index: 3;
+				transform: translate(50px, 50px);
+				/* transform: translate(75px,75px); */
+				/* transform: translate(-50%,-50%); */
+			}
+
+			.stick {
+				position: absolute;
+				z-index: 2;
+			}
+
+			.ball.animation {
+				transition: left .1s ease-out, top .1s ease-out;
+			}
+
+			.stick.animation {
+				transition: all .2s ease-out;
+			}
+
+			.bottom-drive {
+				position: absolute;
+				z-index: 1;
+				/* transform: translate(-50%,-50%); */
+			}
+
+			/* 摇杆区域结束 */
+			/* 密码弹框 */
+			.pdwDialog {
+				width: 60%;
+				height: 70%;
+				display: flex;
+				flex-direction: column;
+				position: absolute;
+				top: 20%;
+				left: 20%;
+
+			}
+
+			.pdwDialog-close {
+				width: 20px;
+				height: 20px;
+				position: absolute;
+				top: 10px;
+				right: 10px;
+			}
+
+			.pdwDialog-title {
+				/* flex: 1; */
+				height: 20%;
+				/* height: 30%; */
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				background-color: #3583D1;
+				color: #ffffff;
+				text-align: center;
+				line-height: 20%;
+			}
+
+			.pdwDialog-main {
+				/* flex: 6; */
+				height: 80%;
+				background-color: #ffffff;
+				display: flex;
+				flex-direction: column;
+				align-items: center;
+				justify-content: space-around;
+				padding: 20px 0;
+			}
+
+			.pdwDialog-main-input {
+				width: 80%;
+				height: 20%;
+				border: 1px solid #3583D1;
+				border-radius: 5px;
+			}
+
+			.pdwDialog-main-button {
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				width: 80%;
+				height: 20%;
+				border-radius: 5px;
+				background-color: #3583D1;
+				color: #ffffff;
+			}
+
+			.tips {
+				position: absolute;
+				top: 50%;
+				left: 50%;
+				transform: translateX(-50%);
+				background-color: rgba(0, 0, 0, .6);
+				color: #ffffff;
+				height: 20px;
+				line-height: 20px;
+				padding: 10px;
+			}
+
+			.top {
+				display: flex;
+				justify-content: space-between;
+			}
+
+			.top-nav {
+				color: #ffffff;
+				margin-left: 5px;
+			}
+
+			.top-nav span {
+				display: inline-block;
+				padding: 8px 20px;
+			}
+
+			.active-nav {
+				border-bottom: 1px solid #ffffff;
+			}
+
+			.ship-message {
+				display: flex;
+				justify-content: center;
+			}
+
+			.bottom {
+				position: absolute;
+				bottom: 10px;
+				width: 100%;
+				display: flex;
+			}
+
+			.bottom img {
+				width: 100px;
+				height: 35rpx;
+				margin-left: 10px;
+			}
+
+			.el-input__inner {
+				background-color: transparent;
+				height: 30px;
+			}
+
+			.el-form-item {
+				margin-bottom: 10px;
+			}
+			.map-select .el-input__inner {
+				background-color: #ffffff;
+			}
+			/* 蓝牙手柄 */
+		</style>
+	</head>
+	<body>
+		<div id="video-container">
+		</div>
+		<div id="app">
+			<!-- 地图区 -->
+			<div v-show="activeSet!=3" id="map"></div>
+			<!-- 操作区 -->
+			<div class="top">
+				<div class="top-nav">
+					<span v-for="item in setModel" @click="driveNavChange(item)"
+						:class="activeSet == item.value ? 'active-nav' : ''" :key="item.value">{{item.label}}</span>
+				</div>
+				<div style="position: absolute;
+					left: calc(50% - 100px);
+					top:5px;
+					width: 200px;">
+					<el-select v-show="activeSet!=3" v-model="shipName" @change="shipSelect" filterable
+						placeholder="请选择">
+						<el-option v-for="item in shipList" :key="item.id" :label="item.name" :value="item.id">
+						</el-option>
+					</el-select>
+				</div>
+				<div>
+					<el-dropdown trigger="click">
+						<span class="el-dropdown-link">
+							{{user}}<i class="el-icon-arrow-down el-icon--right"></i>
+						</span>
+						<el-dropdown-menu slot="dropdown">
+							<el-dropdown-item>用户切换</el-dropdown-item>
+							<el-dropdown-item>退出系统</el-dropdown-item>
+						</el-dropdown-menu>
+					</el-dropdown>
+				</div>
+			</div>
+			<div class="ship-message" v-show="activeSet!=3">
+				<span
+					class="full-text">5G信号：{{potrolingData.shipData.noSv>5?'强':potrolingData.shipData.noSv>2?'中':'弱'}}</span>
+				<span
+					class="full-text">航行时速：{{potrolingData.shipData.speed < 0.001 ? 0 : Number(potrolingData.shipData.speed).toFixed(3)}}m/s</span>
+				<span
+					class="full-text">航行方向：{{potrolingData.shipData.course ? hangFunction(parseInt(potrolingData.shipData.course).toFixed(0)) + '°': '-'}}</span>
+				<span
+					class="full-text">经纬度：{{potrolingData.shipData.lng ? Number(potrolingData.shipData.lng).toFixed(6):''}}
+					- {{potrolingData.shipData.lat ? Number(potrolingData.shipData.lat).toFixed(6):''}}</span>
+				<span
+					class="full-text">电池电量：{{potrolingData.shipData.electricity ? potrolingData.shipData.electricity + '%' : '--'}}</span>
+				<span
+					class="full-text">巡河距离：{{potrolingData.shipRunningData.distance ? potrolingData.shipRunningData.distance + 'km': '-'}}</span>
+				<span
+					class="full-text">垃圾重量：{{potrolingData.shipRunningData.weight?potrolingData.shipRunningData.weight + 'kg': '-' }}</span>
+			</div>
+			<div class="bottom-main-gears" v-show="activeSet!=3">
+				<!-- 底部滑块 -->
+				<div style="width: 20px; height: 120px; border-radius: 8px; background-color: rgba(53, 131, 209, .5);">
+				</div>
+				<!-- 触摸感应区 -->
+				<div style="position: absolute;z-index: 9999;bottom: -25px;">
+					<span @click="setDrive('2')" class="bottom-main-gears-click">
+						<img style="width: 45px; height: 45px;" v-show="gears===3" src="./patroling/gear.png" alt="">
+					</span>
+					<span @click="setDrive('1')" class="bottom-main-gears-click">
+						<img style="width: 45px; height: 45px;" v-show="gears===1" src="./patroling/gear.png" alt="">
+					</span>
+					<span @click="setDrive('N')" class="bottom-main-gears-click">
+						<img style="width: 45px; height: 45px;" v-show="gears===0" src="./patroling/gear.png" alt="">
+					</span>
+					<span @click="setDrive('R')" class="bottom-main-gears-click">
+						<img style="width: 45px; height: 45px;" v-show="gears===-1" src="./patroling/gear.png" alt="">
+					</span>
+				</div>
+				<!-- 挡位标识区 -->
+				<div style="position: absolute;z-index: 9999;bottom: -20px;left: 20px;">
+					<span class="bottom-main-gears-label">
+						-2
+					</span>
+					<span class="bottom-main-gears-label">
+						-1
+					</span>
+					<span class="bottom-main-gears-label">
+						-N
+					</span>
+					<span class="bottom-main-gears-label">
+						-R
+					</span>
+				</div>
+			</div>
+			<div v-show="activeSet==2"
+				style="width: 150px;height:150px;position: absolute; z-index: 99;bottom: 100px;right: 50px;">
+				<div style="position: absolute;width: 150px;height:150px;">
+					<div class='toucharea' :style="" @touchstart="onTouchStart" @touchmove="onTouchMove"
+						@touchcancel="onTouchEnd" @touchend="onTouchEnd">
+						<div style="border-radius: 50%;" :style="{width:touchRadius*2+'px',height:touchRadius*2+'px'}">
+						</div>
+					</div>
+					<div class="ball" :style="{left:left+'px',top:top+'px'}"
+						:class="{animation:inDraging===false&&transition}">
+						<div style="width: 50px;height: 50px;border-radius: 50%;">
+							<div style="width: 50px;height: 50px;">
+								<img src="./patroling/center.png" style="width: 100%;height: 100%;">
+							</div>
+						</div>
+					</div>
+					<div class='stick' :class="{animation:inDraging===false&&transition}"
+						:style="{height: stickHeight+'px',transform:'translateX(-50%)'}">
+						<div :style="{transform:'rotate('+(angle/(3.14159/180)-90)+'deg)'}"
+							style="transform-origin: 50% 0%;width: 100%;height: 100%;">
+							<slot name="stick">
+							</slot>
+						</div>
+					</div>
+					<div class="bottom-drive">
+						<div style="width: 150px;height: 150px;">
+							<img src="./patroling/bottom.png" style="width: 100%;height: 100%;">
+						</div>
+					</div>
+				</div>
+				<div style="width: 150px;height: 150px;position: absolute;z-index: 99;pointer-events: none;"></div>
+			</div>
+			<div class="bottom" v-show="activeSet!=3">
+				<img src="../logoWhite.png" alt="">
+				<div class="full-main-top">
+					<div @click="setShip('1')" class="full-main-top-item">
+						<img style="height:20px;width:20px;" src="./patroling/autoDrive.png">
+						<span :class="autoDriveFlag?'activeText':'defaultText'"
+							style="color: #007AFF !important;line-height:20px;font-size:10px;margin-left: 5px;">{{driveModel}}</span>
+					</div>
+					<div @click="setShip('2')" class="full-main-top-item">
+						<img style="height:20px;width:20px;" src="./patroling/zdyp.png">
+						<span :class="shipRain?'activeText':'defaultText'"
+							style="color: #ffffff;line-height:20px;font-size:10px;margin-left: 5px;">自动雨棚</span>
+					</div>
+					<div @click="setShip('3')" class="full-main-top-item">
+						<img style="height:20px;width:20px;" src="./patroling/ctdk.png">
+						<span :class="shipHead?'activeText':'defaultText'"
+							style="color: #ffffff;line-height:20px;font-size:10px;margin-left: 5px;">船头打开</span>
+					</div>
+					<div @click="setShip('4')" class="full-main-top-item">
+						<img style="height:20px;width:20px;" src="./patroling/LED.png">
+						<span :class="shipLight?'activeText':'defaultText'"
+							style="color: #ffffff;line-height:20px;font-size:10px;margin-left: 5px;">LED灯</span>
+					</div>
+					<div @click="setShip('5')" class="full-main-top-item">
+						<img style="height:20px;width:20px;" src="./patroling/znsb.png">
+						<span class="defaultText"
+							style="color: #ffffff;line-height:20px;font-size:10px;margin-left: 5px;">智能识别</span>
+					</div>
+					<div @click="setShip('6')" class="full-main-top-item">
+						<img style="height:20px;width:20px;" src="./patroling/APPcamera.png">
+						<span class="defaultText"
+							style="color: #ffffff;line-height:20px;font-size:10px;margin-left: 5px;">app相机</span>
+					</div>
+					<div @click="setShip('7')" class="full-main-top-item">
+						<img style="height:20px;width:20px;" src="./patroling/zfs.png">
+						<span :class="shipHandLeft?'activeText':'defaultText'"
+							style="color: #ffffff;line-height:20px;font-size:10px;margin-left: 5px;">左扶手</span>
+					</div>
+					<div @click="setShip('8')" class="full-main-top-item">
+						<img style="height:20px;width:20px;" src="./patroling/yfs.png">
+						<span :class="shipHandRight?'activeText':'defaultText'"
+							style="color: #ffffff;line-height:20px;font-size:10px;margin-left: 5px;">右扶手</span>
+					</div>
+
+					<div @click="setShip('9')" class="full-main-top-item">
+						<img style="height:20px;width:20px;" src="./patroling/djfw.png">
+						<span :class="shipHandRight?'activeText':'defaultText'"
+							style="color: #ffffff;line-height:20px;font-size:10px;margin-left: 5px;">电机复位</span>
+					</div>
+					<div @click="setShip('10')" class="full-main-top-item">
+						<img style="height:20px;width:20px;" src="./patroling/zdfh.png">
+						<span :class="shipHandRight?'activeText':'defaultText'"
+							style="color: #ffffff;line-height:20px;font-size:10px;margin-left: 5px;">自动返航</span>
+					</div>
+					<div @click="setShip('11')" class="full-main-top-item">
+						<img style="height:20px;width:20px;" src="./patroling/yybf.png">
+						<span :class="shipHandRight?'activeText':'defaultText'"
+							style="color: #ffffff;line-height:20px;font-size:10px;margin-left: 5px;">音乐播放</span>
+					</div>
+					<div @click="setShip('12')" class="full-main-top-item">
+						<img style="height:20px;width:20px;" src="./patroling/yybb.png">
+						<span :class="shipHandRight?'activeText':'defaultText'"
+							style="color: #ffffff;line-height:20px;font-size:10px;margin-left: 5px;">语音播报</span>
+					</div>
+					<div @click="setShip('13')" class="full-main-top-item">
+						<img style="height:20px;width:20px;" src="./patroling/dhdt.png">
+						<span :class="shipHandRight?'activeText':'defaultText'"
+							style="color: #ffffff;line-height:20px;font-size:10px;margin-left: 5px;">导航地图</span>
+					</div>
+				</div>
+			</div>
+			<!-- 密码弹窗 -->
+			<el-dialog :visible.sync="pswDialog" :modal="false" :close-on-click-modal="false" width="50%"
+				style="margin-top: 20vh;" center>
+				<el-input v-model="password" type="password" placeholder="请输入密码"></el-input>
+				<span slot="footer" class="dialog-footer">
+					<el-button type="primary" @click="shipLogin">确 定</el-button>
+					<el-button @click="pswDialog = false">取 消</el-button>
+				</span>
+			</el-dialog>
+			
+			
+			<!-- 音乐播放弹窗 -->
+			<el-dialog :visible.sync="musicDialog" title="音乐播放" :modal="false" :close-on-click-modal="false" width="50%"
+				style="margin-top: 10vh;" center>
+				<el-form :model="musicData">
+					<el-form-item label="音乐" :label-width="formLabelWidth">
+					  <el-select v-model="musicData.audioType" style="width: 100%;">
+						<el-option v-for="item in musicList" :key="item.id" :label="item.name" :value="item.id">
+						</el-option>
+					  </el-select>
+					</el-form-item>
+					<!-- <el-form-item label="音乐2" :label-width="formLabelWidth">
+					  <el-select v-model="musicData.voice" style="width: 100%;">
+						<el-option v-for="item in voiceList" :key="item.id" :label="item.name" :value="item.id">
+						</el-option>
+					  </el-select>
+					</el-form-item>
+					<el-form-item label="音乐3" :label-width="formLabelWidth">
+					  <el-select v-model="musicData.voice" style="width: 100%;">
+						<el-option v-for="item in voiceList" :key="item.id" :label="item.name" :value="item.id">
+						</el-option>
+					  </el-select>
+					</el-form-item>
+					<el-form-item label="音乐4" :label-width="formLabelWidth">
+					  <el-select v-model="musicData.voice" style="width: 100%;">
+						<el-option v-for="item in voiceList" :key="item.id" :label="item.name" :value="item.id">
+						</el-option>
+					  </el-select>
+					</el-form-item>
+					<el-form-item label="音乐5" :label-width="formLabelWidth">
+					  <el-select v-model="musicData.voice" style="width: 100%;">
+						<el-option v-for="item in voiceList" :key="item.id" :label="item.name" :value="item.id">
+						</el-option>
+					  </el-select>
+					</el-form-item>
+					<el-form-item label="方式" :label-width="formLabelWidth">
+					  <el-select v-model="musicData.playType" style="width: 100%;">
+						<el-option v-for="item in musicPlayList" :key="item.id" :label="item.name" :value="item.id">
+						</el-option>
+					  </el-select>
+					</el-form-item> -->
+				</el-form>
+				<div slot="footer" class="dialog-footer">
+				    <el-button type="primary" @click="dialogFormVisible = false">播 放</el-button>
+				    <el-button @click="dialogFormVisible = false">停 止</el-button>
+				</div>
+			</el-dialog>
+			
+			<!-- 语音播报弹窗 -->
+			<el-dialog :visible.sync="audioDialog" title="语音播报" :modal="false" :close-on-click-modal="false" width="50%"
+				style="margin-top: 10vh;" center>
+				<el-form :model="audioData">
+					<el-form-item label="标准类型" :label-width="formLabelWidth">
+					  <el-select v-model="audioData.audioType" @change="loadVoice()" style="width: 100%;">
+						<el-option v-for="item in audioTypeList" :key="item.id" :label="item.name" :value="item.id">
+						</el-option>
+					  </el-select>
+					</el-form-item>
+					<el-form-item label="标准语音" :label-width="formLabelWidth">
+					  <el-select v-model="audioData.voice" style="width: 100%;">
+						<el-option v-for="item in voiceList" :key="item.id" :label="item.name" :value="item.id">
+						</el-option>
+					  </el-select>
+					</el-form-item>
+					<el-form-item label="自定义" :label-width="formLabelWidth">
+					  <el-input type="textarea" v-model="audioData.msg" placeholder="请输入内容"></el-input>
+					</el-form-item>
+					<el-form-item label="方式" :label-width="formLabelWidth">
+					  <el-select v-model="audioData.playType" style="width: 100%;">
+						<el-option v-for="item in musicPlayList" :key="item.id" :label="item.name" :value="item.id">
+						</el-option>
+					  </el-select>
+					</el-form-item>
+				</el-form>
+				<div slot="footer" class="dialog-footer">
+				    <el-button type="primary" @click="submitVoice()">播 放</el-button>
+				    <el-button >停 止</el-button>
+				</div>
+			</el-dialog>
+			
+			<!-- 地图规划 -->
+			<div v-show="activeSet==3" style="width: 100%; height: 100%;">
+				<div id="mapBox" style="width: 100%; height: 100%;"></div>
+				<div style="position: absolute; top: 40px;">
+					<el-select class="map-select" v-model="audioData.audioType">
+						<el-option>
+						</el-option>
+					</el-select>
+					<el-button size="small" type="primary">启 动</el-button>
+					<el-button size="small" type="primary">停 止</el-button>
+					<el-button size="small" type="primary">规 划</el-button>
+					<el-button size="small" type="primary">调 度</el-button>
+					<el-button size="small" type="primary">返 航</el-button>
+				</div>
+			</div>
+		</div>
+
+		<!-- 	<img id="autoControl" onclick="closeAutoDrive()" style="display: none;position: absolute; z-index: 99; width: 18px; height: 18px; bottom: 40px; left: 6px;" src="./patroling/change.png" alt="">
+	<img id="autoControlActive" onclick="openAutoDrive()" style="display: none;position: absolute; z-index: 99; width: 18px; height: 18px; bottom: 40px; left: 6px;" src="./patroling/changeActive.png" alt=""> -->
+
+	</body>
+	<script>
+		;
+
+		// 监听手柄连接情况
+		var haveEvents = 'GamepadEvent' in window;
+		var haveWebkitEvents = 'WebKitGamepadEvent' in window;
+
+
+		var startLeft, startTop;
+		var timer;
+		var app
+		var getDistance = function(x1, y1, x2, y2) {
+			var _x = Math.abs(x1 - x2);
+			var _y = Math.abs(y1 - y2);
+			return Math.sqrt(_x * _x + _y * _y);
+		}
+		
+		let fullWidth = document.body.clientWidth
+		let fullHeight = document.body.clientHeight - 140
+		var player
+		var accessToken = getQuery('token')
+		// debugger
+		player = new EZUIKit.EZUIKitPlayer({
+			id: 'video-container', // 视频容器ID
+			accessToken: accessToken,
+			url: `ezopen://open.ys7.com/${getQuery('id')}/1.hd.live`,
+			// url: `rtsp://47.110.158.224:8110/live`,
+			autoplay: true,
+			width: fullWidth,
+			// width: 400,
+			height: fullHeight,
+			template: 'mobileLive',
+			// template: 'theme',
+			// header: ['capturePicture'],
+			fullScreenChangeCallBack: (data) => {
+				// debugger
+			},
+			capturePictureCallBack: (data) => {
+				console.log("promise 获取 数据", data)
+			},
+			// footer: ['fullScreen']
+		})
+		// player.fullScreen()
+		// 获取传递过来的数据
+		function getQuery(name) {
+			// 正则：[找寻'&' + 'url参数名字' = '值' + '&']（'&'可以不存在）
+			let reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
+			let r = window.location.search.substr(1).match(reg);
+			console.log(r);
+			if (r != null) {
+				// 对参数值进行解码
+				return decodeURIComponent(r[2]);
+			}
+			return null;
+		}
+
+		function fullScreenChangeCallBack(e) {
+			console.log(player)
+			// debugger
+		}
+
+		function capturePicture() {
+			if (player) {
+				var capturePicturePromise = player.capturePicture();
+				capturePicturePromise.then((data) => {
+					console.log("promise 获取 数据", data)
+				})
+			}
+		}
+		// 接收实时消息
+		window.postNowMsg = (id) => {
+			let aa = (new Function("return " + id))()
+			changeData(aa)
+		};
+
+		function changeData(data) {
+			app.potrolingData.noSv = data.noSv
+			app.potrolingData.speed = data.speed
+			app.potrolingData.angleNorth = data.angleNorth
+			app.potrolingData.socMean = data.socMean
+			// setTimeout(() => {
+			// 	this.$message.success(app)
+			// 	app.potrolingData.noSv = data.noSv
+			// 	app.potrolingData.speed = data.speed
+			// 	app.potrolingData.angleNorth = data.angleNorth
+			// 	app.potrolingData.socMean = data.socMean
+			// }, 200)
+		}
+
+
+		function connecthandler(e) {
+			console.log(e, 'eeeee')
+			// app.gamepads = e.gamepad
+			// requestAnimationFrame(updateStatus)
+			scangamepads()
+		}
+
+		function disconnecthandler(e) {
+			console.log(e, 'rrrrrrr')
+			app.buttons = []
+			app.gamepads = {}
+		}
+
+		function updateStatus() {
+			var gamepad = navigator.getGamepads()[0];
+			for (var i = 0; i < gamepad.buttons.length; i++) {
+				var val = gamepad.buttons[i];
+				var pressed = val == 1.0;
+				var touched = false;
+				if (typeof(val) == "object") {
+					pressed = val.pressed;
+					if ('touched' in val) {
+						touched = val.touched;
+					}
+					val = val.value;
+				}
+				app.$set(app.buttons[i], 'pressed', pressed)
+				app.$set(app.buttons[i], 'touched', touched)
+				// app.$set(app.buttons[i], 'value', val)
+				// app.buttons[i].touched = touched
+			}
+			app.axes = gamepad.axes
+			requestAnimationFrame(updateStatus)
+		}
+
+		function scangamepads() {
+			var gamepad = navigator.getGamepads()[0];
+			app.gamepads = gamepad
+			if (gamepad && !app.buttons.length) {
+				app.buttons = []
+				for (var i = 0; i < gamepad.buttons.length; i++) {
+					app.buttons.push({
+						pressed: gamepad.buttons[i].pressed,
+						touched: gamepad.buttons[i].touched,
+						// value: gamepad.buttons[i].value,
+					})
+				}
+				requestAnimationFrame(updateStatus)
+			}
+		}
+
+		if (haveEvents) {
+			window.addEventListener("gamepadconnected", connecthandler);
+			window.addEventListener("gamepaddisconnected", disconnecthandler);
+		} else if (haveWebkitEvents) {
+			window.addEventListener("webkitgamepadconnected", connecthandler);
+			window.addEventListener("webkitgamepaddisconnected", disconnecthandler);
+		} else {
+			setInterval(scangamepads, 500);
+		}
+
+
+		// 监听全屏
+		window.onload = function() {
+			document.getElementById('app').style.display = 'block'
+			app = new Vue({
+				el: "#app",
+				data: {
+					fullWidth: document.body.clientWidth,
+					fullHeight: document.body.clientHeight - 140,
+					setModel: [{
+							value: 1,
+							label: '蓝牙手柄'
+						},
+						{
+							value: 2,
+							label: '虚拟键盘'
+						},
+						{
+							value: 3,
+							label: '航线规划'
+						}
+					],
+					activeSet: 2,
+					shipName: '',
+					shipList: [],
+					pswDialog: false,
+					camera_num: '',
+					gamepadsTimer: null,
+					axes: [],
+					buttons: [],
+					gamepads: {},
+					audioDialog: false,
+					musicDialog: false,
+					formLabelWidth: '120px',
+					audioTypeList: [{
+							id: '0',
+							name: '语音驱赶'
+						},
+						{
+							id: '1',
+							name: '语音提醒'
+						},
+						{
+							id: '2',
+							name: '语音救援'
+						},
+						{
+							id: '3',
+							name: '语音宣讲'
+						},
+						{
+							id: '4',
+							name: '语音交互'
+						},
+					], // 语音标准类型
+					voiceList: [
+						// {
+						// 	id: '0',
+						// 	name: '男声'
+						// },
+						// {
+						// 	id: '1',
+						// 	name: '女声'
+						// },
+						// {
+						// 	id: '2',
+						// 	name: '童声'
+						// },
+						// {
+						// 	id: '3',
+						// 	name: '普通话'
+						// },
+						// {
+						// 	id: '4',
+						// 	name: '方言'
+						// }
+					], // 声音类型
+					musicPlayList: [
+						{
+							id: '0',
+							name: '单次播放'
+						},
+						{
+							id: '1',
+							name: '循环播放'
+						}
+					], // 音乐播放列表
+					audioData: {
+						audioType: '', // 语音类别
+						msg:'', // 自定义播放内容
+						voice: '', // 声音类型
+						playType: '', // 播放方式
+					},
+					musicData: {
+						audioId: '', // 背景音乐ID
+						model: ''
+					},
+					// userInfo: JSON.parse(localStorage.getItem('userData')).data,
+
+					user: getQuery('user'),
+					userId: getQuery('userId'),
+					APPcamera: false, // app相机显示
+					marker: {}, // 地图定位点
+					map: null, // mapbox实例
+					mapBox: null, // mapbox实例
+
+					shipId: '',
+					password: '',
+					driveModel: '自动驾驶', // 驾驶模式
+					fullscreen: false,
+					driveShow: false, // 手动驾驶操作栏
+					autoDrive: true, // 全屏是否自动驾驶
+					autoDriveFlag: false, // 是否自动驾驶
+					shipHead: false, // 船头开关
+					shipHandLeft: false, // 左扶手
+					shipHandRight: false, // 右扶手
+					shipRain: false, // 自动雨棚
+					shipLight: false, // led灯
+					shipReset: '0', // 电机复位
+					gears: 0, // 挡位
+					direction: '0', // 方向盘 
+					accelerator: '32767', // 油门
+					braking: '32767', // 刹车
+					potrolingData: {
+						shipRunningData: {},
+						shipData: {}
+					},
+					touchRadius: 100, // 触摸识别区域的半径
+					ballMoveRadius: 50, // 杆头的移动范围半径，也就是杆体的长度
+					transition: false,
+
+					crossupPressed: false,
+					crossrightPressed: false,
+					crossdownPressed: false,
+					crossleftPressed: false,
+					beetleLeft: 0,
+					beetleTop: 0,
+					beetleRotate: 0,
+					wangzheRotate: 0,
+
+					left: 0,
+					top: 0,
+					stickHeight: 0,
+					angle: 0,
+					inDraging: false,
+
+					timertwo: '',
+					firstSet: true, // 首次连接websocket
+
+					// path: '12038',
+					path: '',
+					socket: "",
+					socket2: "",
+					socketConnet: false, // socket是否连接
+
+					contorlBtn: false, // 手动驾驶按钮栏开关
+
+					pwdShow: false, // 密码弹窗
+					tipsShow: false, // 提示语显示
+					masgTips: '', // 提示语
+					isLogin: false, // 是否已验证密码
+				},
+				methods: {
+					driveNavChange(data) {
+						player.play()
+						console.log(navigator.getGamepads())
+						if (data.value == 1 && !this.gamepads.id) {
+							this.$message.warning('请确认连接手柄并按下任意按键')
+							return
+						} else if (data.value == 1 && this.gamepads.id) {
+							this.$message.success('手柄适配成功！')
+						}
+						this.activeSet = data.value
+						if (data.value == 1) { // 手柄已连接，持续获取手柄状态
+							// this.connectWebsocket()
+							this.gamepadsTimer = setInterval(() => {
+								// this.gamepads = navigator.getGamepads()[0]
+								// this.axes = navigator.getGamepads()[0].axes
+								// this.buttons = navigator.getGamepads()[0].buttons
+								this.onDrive()
+							}, 100)
+						} else {
+							if (this.socketConnet) {
+								this.close()
+							}
+							clearInterval(this.gamepadsTimer)
+							this.gamepadsTimer = null
+							if (data.value == 3) { // 航线规划
+								player.stop()
+								if (!this.mapBox) {
+									setTimeout(()=> {
+										this.mapBox = new mapboxgl.Map({
+											container: 'mapBox', // container ID
+											style: 'mapbox://styles/mapbox/streets-v12', // style URL
+											center: [120.33, 30.663], // starting position [lng, lat]
+											zoom: 6, // starting zoom
+										});
+									}, 600)
+								}
+								// document.getElementById('video-container').style.display = 'none'
+							}
+						}
+					},
+					onDrive() {
+						// 方向 -1 ~ 1
+						// this.$message.success(JSON.stringify(this.buttons[0].pressed))
+						this.left = this.axes[0].toFixed(3)
+						this.top = this.axes[1].toFixed(3)
+						// 方向 -30000 ~ 30000
+						// 刹车 -30000 ~ 30000
+						// 油门 0 ~ 30000
+						this.direction = (this.left * 30000).toFixed(0)
+
+						if (this.top > 0) { // 下（刹车）
+							this.accelerator = '32767' // 油门松开
+							if (this.top * 30000 < -15000) {
+								this.braking = (this.top * 30000).toFixed(0)
+							} else {
+								this.braking = ((this.top * 30000) * -1).toFixed(0)
+							}
+						} else { // 上 （油门）
+							// 目前只给一半
+							this.braking = '32767'
+							this.accelerator = (30000 - Math.abs(this.top) * 30000).toFixed(0)
+						}
+						// console.log(this.accelerator, '油门')
+						// console.log(this.braking, '刹车')
+						// console.log(this.direction, '方向')
+						// console.log(this.left, 'this.left')
+						// console.log(this.top, 'this.top')
+					},
+					shipSelect(id) {
+						this.shipId = id
+						this.loadShip(id)
+						let num = this.shipList.find(i => i.id == id).number
+						this.loadShipPort(num)
+					},
+					loadShip(id) {
+						axios.get('http://47.114.52.47/v1/admin/ship/', {
+							params: {
+								shipId: id,
+							}
+						}).then(res => {
+							console.log(res)
+							const data = res.data
+							this.camera_num = data.data[0].camera_num
+							setTimeout(() => {
+								this.pswDialog = true
+							}, 100)
+						}).catch(err => {
+							this.$message.error('未知错误，请联系管理员')
+						})
+					},
+					loadShipPort(num) {
+						debugger
+						// 获取船的端口号
+						axios.get('http://47.114.52.47/app/ship/detail/', {
+							params: {
+								shipNum: num,
+								shipPd: '123456'
+							},
+						}).then(res => {
+							console.log(res)
+							const data = res.data
+							this.shipUrl = data.data.shipPort
+							this.videoUrl = data.data.zipStreamAddress
+						}).catch(err => {
+							this.$message.error('未知错误，请联系管理员')
+						})
+					},
+					shipLogin() { // 船舶登录验证（手动驾驶验证）
+						axios.post('http://47.114.52.47/v1/wisdom/app/start_ship/pwd/', {
+							shipId: this.shipId,
+							userId: this.userId,
+							pwd: this.password
+						}).then(res => {
+							console.log(JSON.stringify(res))
+							if (!res.data.data.status) {
+								this.$message.error('密码错误，请联系管理员')
+							} else {
+								this.$message('密码验证成功')
+								player.url = `ezopen://open.ys7.com/${this.camera_num}/1.hd.live`
+								player.stop()
+								player.play()
+								this.pswDialog = false
+								this.loadShipStatus()
+								setInterval(() => {
+									this.loadShipStatus()
+								}, 6000)
+							}
+						})
+					},
+					loadShipStatus() {
+						axios.get('http://47.114.52.47/v1/wisdom/app/ship_running/status/', {
+							params: {
+								shipId: this.shipId,
+							}
+						}).then(res => {
+							let data = res.data
+							if (data.retCode === 0) {
+								this.potrolingData = data.data
+								// 定位
+								this.map.flyTo({
+									center: [data.data.shipData.lng, data.data.shipData.lat],
+									essential: false
+								});
+								this.marker.setLngLat([data.data.shipData.lng, data.data.shipData.lat])
+							} else {
+								this.$message.error('未知错误，请联系管理员')
+							}
+						}).catch(err => {
+							console.log(err)
+						})
+					},
+					setDrive(msg) {
+						// 油门刹车值归零
+						// this.braking = '32767'
+						// this.accelerator = '32767'
+						if (msg == '1') { // 1档
+							this.gears = 1
+							// this.accelerator = '16384'
+						} else if (msg == '2') { // 2档
+							this.gears = 3
+							// this.accelerator = '0'
+						} else if (msg == 'N') { // 空挡
+							this.gears = 0
+						} else if (msg == 'R') { // 倒挡
+							this.gears = -1
+							// this.accelerator = '8192'
+						}
+					},
+					setShip(num) {
+						// return
+						this.shipReset = '0'
+						console.log(num)
+						switch (num) {
+							case '1':
+								// this.shipReset = '1'
+								this.autoDriveFlag = !this.autoDriveFlag
+								if (!this.autoDriveFlag) {
+									// 关闭手动驾驶
+									this.driveModel = '自动驾驶'
+									this.close()
+									this.socket.onclose = this.close
+									this.socket2.onclose = this.close2
+									this.shipHead = false
+									this.shipRain = false
+									this.shipHandLeft = false
+									this.shipHandRight = false
+									this.shipLight = false
+								} else {
+									console.log('kaishi')
+									this.firstSet = true
+									this.driveModel = '手动驾驶'
+									this.connectWebsocket()
+									// this.connectWebsocketStatus()
+									this.gears = '0'
+								}
+								// if (!this.autoDriveFlag) {
+								// 	// 关闭手动驾驶，清空油门刹车，方向盘回正
+								// 	this.accelerator = '32767'
+								// 	this.braking = '32767'
+								// 	this.direction = '0'
+								// }
+								break;
+							case '2':
+								// 雨棚
+								this.firstSet = false
+								this.shipRain = !this.shipRain
+								break;
+							case '3':
+								// 船头
+								this.firstSet = false
+								this.shipHead = !this.shipHead
+								break;
+							case '4':
+								this.shipLight = !this.shipLight
+								break;
+							case '5':
+								
+								break;
+							case '6':
+								// app相机
+								this.APPcameraShow()
+								break;
+							case '7':
+								this.firstSet = false
+								this.shipHandLeft = !this.shipHandLeft
+								break;
+							case '8':
+								this.firstSet = false
+								this.shipHandRight = !this.shipHandRight
+								break;
+							case '9':
+
+								break;
+							case '10':
+
+								break;
+							case '11':
+								// 背景音乐
+								this.musicDialog = !this.musicDialog
+								break;
+							case '12':
+								// 语音播放
+								this.audioDialog = !this.audioDialog
+								break;
+							case '13':
+
+								break;
+						}
+						console.log(this.autoDriveFlag)
+					},
+					onWZJoystickUpdate(obj) {
+						this.wangzheRotate = obj / (3.14159 / 180) + 90;
+					},
+					onBeetleJoystickUpdate(obj) {
+						this.beetleLeft += Math.cos(obj.angle) * (obj.power * 10);
+						this.beetleTop += Math.sin(obj.angle) * (obj.power * 10);
+						this.beetleRotate = obj.angle / (3.14159 / 180);
+					},
+					onCrossJoyStickUpdate(obj) {
+						this.crossupPressed = false;
+						this.crossrightPressed = false;
+						this.crossdownPressed = false;
+						this.crossleftPressed = false;
+						if (obj.angle > -2.35 && obj.angle < -0.75) {
+							this.crossupPressed = true;
+						} else if (obj.angle > -0.75 && obj.angle < 0.75) {
+							this.crossrightPressed = true;
+						} else if (obj.angle > 0.75 && obj.angle < 2.35) {
+							this.crossdownPressed = true;
+						} else {
+							this.crossleftPressed = true;
+						}
+					},
+					onCrossJoyStickCancel() {
+						this.crossupPressed = false;
+						this.crossrightPressed = false;
+						this.crossdownPressed = false;
+						this.crossleftPressed = false;
+					},
+					onTouchStart(e) {
+						var curTouch = e.touches[0];
+						startLeft = curTouch.clientX - this.left;
+						startTop = curTouch.clientY - this.top;
+						this.inDraging = true;
+					},
+					onTouchMove(e) {
+						// 从左到右 -50 ~ 50
+						// 从上到下 -50 ~ 50
+						var curTouch = e.touches[0];
+						var tleft = curTouch.clientX - startLeft;
+						var ttop = curTouch.clientY - startTop;
+						var distance = getDistance(tleft, ttop, 0, 0);
+
+						if (distance >= this.ballMoveRadius) distance = this.ballMoveRadius;
+
+						var angle = Math.atan2((ttop - 0), (tleft - 0));
+						this.left = Math.cos(angle) * distance;
+						this.top = Math.sin(angle) * distance;
+
+						this.stickHeight = distance;
+						this.angle = angle;
+						this.onWZJoystickUpdate(this.angle)
+						let ang = angle / (3.14159 / 180) + 90
+						// 方向 -30000 ~ 30000
+						// 刹车 -30000 ~ 30000
+						// 油门 0 ~ 30000
+						this.direction = (this.left * 600).toFixed(0)
+
+						if (this.top > 0) { // 下（刹车）
+							this.accelerator = '32767'
+							if (this.top * 1200 < -30000) {
+								this.braking = (this.left * 600).toFixed(0)
+							} else {
+								this.braking = ((this.left * 600) * -1).toFixed(0)
+							}
+						} else { // 上 （油门）
+							// 目前只给一半
+							this.braking = '32767'
+							this.accelerator = (30000 - Math.abs(this.top) * 600).toFixed(0)
+						}
+
+						console.log(this.accelerator, '油门')
+						console.log(this.braking, '刹车')
+						console.log(this.direction, '方向')
+						// console.log(this.angle/(3.14159/180)+90, 'this.angle')
+						console.log(this.left, 'this.left')
+						console.log(this.top, 'this.top')
+					},
+					onTouchEnd(e) {
+						this.stickHeight = this.left = this.top = 0;
+						// 方向，刹车，油门归零
+						this.direction = '0'
+						this.braking = '32767'
+						this.accelerator = '32767'
+
+						this.inDraging = false;
+
+					},
+					loop() {
+						if (this.inDraging) {
+							this.$emit("onJoyStickUpdate", {
+								angle: this.angle,
+								direction: {
+									x: this.left,
+									y: this.top
+								},
+								power: this.stickHeight / this.ballMoveRadius
+							});
+						}
+					},
+					sendMsg() {
+
+					},
+					connectWebsocket() {
+						let websocket;
+						if (typeof WebSocket === "undefined") {
+							console.log("您的浏览器不支持WebSocket");
+							return;
+						} else {
+							// 实例化socket
+							let url = 'ws://47.110.158.224:' + this.path
+							this.socket = new WebSocket(url)
+							// 监听socket连接
+							this.socket.onopen = this.open
+							// 监听socket错误信息
+							this.socket.onerror = this.error
+							// 监听socket消息
+							this.socket.onmessage = this.getMessage
+							// 关闭socket
+							// this.socket.close = this.close
+						}
+					},
+					open() {
+						console.log("socket连接成功")
+						this.socketConnet = true
+						this.timertwo = setInterval(() => {
+							this.send()
+						}, 100)
+					},
+
+					error(err) {
+						console.log("连接错误")
+						console.log(err)
+					},
+					getMessage(msg) {
+						// cur_status:自动驾驶状态，船头状态，流水线状态，雨棚状态，左扶手状态，右扶手状态，LED灯状态，输送带状态，智能识别状态，app相机
+						cur_status: 1,
+						0,
+						1,
+						1,
+						0,
+						0,
+						0,
+						0,
+						1,
+						1
+						console.log(msg.data, 'msgmsg')
+						this.firstSet = false
+						try {
+							if (typeof(msg.data) == 'string') {
+								let stateList = msg.data.substr(11).split(',')
+								stateList[1] == '0' ? this.shipHead = false : this.shipHead = true
+								stateList[3] == '0' ? this.shipRain = false : this.shipRain = true
+								stateList[4] == '0' ? this.shipHandLeft = false : this.shipHandLeft = true
+								stateList[5] == '0' ? this.shipHandRight = false : this.shipHandRight = true
+								stateList[6] == '0' ? this.shipLight = false : this.shipLight = true
+							}
+						} catch (e) {
+							console.log(e)
+						}
+					},
+					send(params) {
+						let msg
+						if (this.firstSet) {
+							msg = msg = 'get_state'
+						} else {
+							msg =
+								`yiming,${this.direction},${this.gears},${this.accelerator},${this.braking},32767,${this.shipHead?1:0},${this.shipHead?0:1},0,${this.autoDrive?1:0},1,1,1,1,1,1,${this.shipReset},${this.shipRain?1:0},0,0,1,0,${this.shipHandLeft?1:0},${this.shipHandRight?1:0},${this.shipHandLeft?0:1},${this.shipHandRight?0:1},0`
+						}
+						this.socket.send(msg)
+						console.log(msg, '发送数据')
+					},
+					send2(params) {
+						let msg
+						msg = 'get_state'
+						this.socket.send(msg)
+						console.log(msg, '发送数据')
+					},
+					close() {
+						if (this.timertwo) {
+							clearInterval(this.timertwo)
+							this.timertwo = null
+						}
+						if (this.gamepadsTimer) {
+							clearInterval(this.gamepadsTimer)
+							this.gamepadsTimer = null
+						}
+						this.socket.close()
+						this.socketConnet = false
+						console.log("socket已经关闭")
+					},
+					close2() {
+						console.log("socket已经关闭")
+					},
+					APPcameraShow() { // app相机切换
+						this.APPcamera = !this.APPcamera
+						console.log(this.APPcamera)
+						if (this.APPcamera) { // 打开app相机
+							player.stop()
+							uni.postMessage({
+								data: {
+									action: '打开app相机'
+								}
+							}); 
+						} else {
+							player.play()
+							uni.postMessage({
+								data: {
+									action: '关闭app相机'
+								}
+							});
+						}
+					},
+					hangFunction(row) {
+						if (row.slice(0, 1) === "-") {
+							if ((row >= -90) && (row <= 0)) {
+								let hang = "西北" + -row;
+								return hang;
+							} else if ((row < -90) && (row >= -180)) {
+								let hang = "西南" + (-row - 90);
+								return hang;
+							} else if ((row < -180) && (row >= -270)) {
+								let hang = "东南" + (-row - 180);
+								return hang;
+							} else if ((row < -270) && (row >= -360)) {
+								let hang = "东北" + (-row - 270);
+								return hang;
+							}
+						} else {
+							if (row < 90) {
+								let hang = "东北" + row;
+								return hang;
+							} else if ((row >= 90) && (row <= 180)) {
+								let hang = "东南" + (row - 90);
+								return hang;
+							} else if ((row > 180) && (row <= 270)) {
+								let hang = "西南" + row;
+								return hang;
+							} else if ((row > 270) && (row <= 360)) {
+								let hang = "西北" + row;
+								return hang;
+							}
+						}
+					},
+					// 加载语音列表
+					loadVoice() {
+						let _this = this
+						axios.post('http://47.114.52.47/v1/pc/voice_play/', {
+							detect: Number(this.audioData.audioType) + 1
+						}).then(res => {
+							let data = res.data;
+							if (data.retCode == '0' || data.retCode === 0) {
+								let datas = data.data
+								_this.voiceList = []
+								datas.map(i => {
+									_this.voiceList.push({
+										id: i.id,
+										name: i.content
+									})
+								})
+							}
+						}).catch(err => {
+							console.log(err)
+						})
+					},
+					// 提交语音播报
+					submitVoice() {
+						let _this = this
+						let msg
+						if (this.audioData.msg) {
+							msg = this.audioData.msg
+						} else{
+							msg = this.voiceList[this.audioData.voice].name
+						}
+						axios.post('http://47.114.52.47/v1/pc/send_voice_play/', {
+							msg: msg,
+							shipNum: this.shipList.find(i => i.id == this.shipId).number,
+							// shipNum: _this.taskList.shipInfo.number,
+						},).then(res => {
+							if (data.retCode == '0' || data.retCode === 0) {
+								this.$message('提交成功')
+								this.audioDialog = !this.audioDialog
+							}
+						}).catch(err => {
+							console.log(err)
+						})
+					},
+					// 加载音乐列表
+					loadMusic() {
+						axios.get('http://47.114.52.47/v1/pc/driver/audio/').then(res => {
+							let data = res.data;
+							if (data.retCode == '0' || data.retCode === 0) {
+								let datas = data.data
+								this.musicList = []
+								datas.list.map(i => {
+									this.musicList.push({
+										id: i.id,
+										name: i.name
+									})
+								})
+								
+							}
+						}).catch(err => {
+							console.log(err)
+						})
+					},
+				},
+				watch: {
+					'buttons': {
+						handler(newValue, oldValue) {
+							console.log(JSON.stringify(newValue))
+							if (newValue[0].pressed) { // 语音播报 A
+								this.audioDialog = !this.audioDialog
+							}
+							if (newValue[1].pressed) { // 电机复位 B
+
+							}
+							if (newValue[2].pressed) { // 音乐播放 X
+								this.musicDialog = !this.musicDialog
+							}
+							if (newValue[3].pressed) { // 自动返航 Y
+
+							}
+							if (newValue[4].pressed) { // 左扶手 L
+								this.$message.success('5')
+								this.firstSet = false
+								this.shipHandLeft = !this.shipHandLeft
+							}
+							if (newValue[5].pressed) { // 右扶手 R
+								this.$message.success('6')
+								this.firstSet = false
+								this.shipHandRight = !this.shipHandRight
+							}
+							if (newValue[6].pressed) { // 雨棚开关 L2
+								this.$message.success('7')
+								this.shipRain = !this.shipRain
+							}
+							if (newValue[7].pressed) { // 船头开关 R2
+								this.$message.success('8')
+								this.firstSet = false
+								this.shipHead = !this.shipHead
+							}
+							if (newValue[8].pressed) { // 菜单选择 start
+
+							}
+							if (newValue[9].pressed) { // 确定 select
+
+							}
+							if (newValue[10].pressed) { // L3
+
+							}
+							if (newValue[11].pressed) { // R3
+
+							}
+							if (newValue[12].pressed) { // 加档 ↑
+								this.firstSet = false
+								this.$message.success('13')
+								this.gears++
+								if (this.gears == 2) {
+									this.gears = 3
+								} else if (this.gears > 3) {
+									this.gears = 3
+								}
+							}
+							if (newValue[13].pressed) { // 降档 ↓
+								this.firstSet = false
+								this.$message.success('14')
+								this.gears--
+								if (this.gears == 2) {
+									this.gears = 1
+								} else if (this.gears < -1) {
+									this.gears = -1
+								}
+							}
+							if (newValue[14].pressed) { // app相机 ←
+								this.APPcameraShow()
+							}
+							if (newValue[15].pressed) { // 导航地图 →
+
+							}
+							if (newValue[16].pressed) { // 导航地图 →
+
+							}
+						},
+						deep: true
+					}
+				},
+				created() {
+					this.shipList = localStorage.getItem('shipList') ? JSON.parse(localStorage.getItem(
+						'shipList')) : []
+					window.postShipList = (list) => {
+						this.shipList = JSON.parse(list)
+					};
+					document.get
+				},
+				mounted() {
+					if (this.inDraging) {
+						this.loop({
+							angle: this.angle,
+							direction: {
+								x: this.left,
+								y: this.top
+							},
+							power: this.stickHeight / this.ballMoveRadius
+						})
+					}
+					mapboxgl.accessToken =
+						'pk.eyJ1IjoibGVlMTIzZCIsImEiOiJja3IxcDc5emIxNmpsMndzNnJycDJpc3ZxIn0.zcS3WhccDUVWwmMFzZijcw';
+					this.map = new mapboxgl.Map({
+						container: 'map', // container ID
+						style: 'mapbox://styles/mapbox/streets-v12', // style URL
+						center: [120.33, 30.663], // starting position [lng, lat]
+						zoom: 16, // starting zoom
+					});
+					let el = document.createElement('div')
+					el.id = 'markerId'
+					el.style.backgroundColor = 'red'
+					el.style.width = 14 + 'px'
+					el.style.height = 14 + 'px'
+					el.style.borderRadius = '50%'
+					this.marker = new mapboxgl.Marker(el).setLngLat([120.33, 30.663]).addTo(this.map);
+					this.loadMusic()
+				},
+				destroyed() {
+					if (this.timertwo) {
+						clearInterval(this.timertwo)
+						this.timertwo = null
+					}
+					if (this.gamepadsTimer) {
+						clearInterval(this.gamepadsTimer)
+						this.gamepadsTimer = null
+					}
+					this.close()
+				}
+			})
+
+
+
+			// app.user = getQuery('user')
+			// app.userId = getQuery('userId')
+			// app.shipId = getQuery('shipId')
+		}
+		document.addEventListener('UniAppJSBridgeReady', function() {
+  
+		})
+		// fullScreenChangeCallBack
+		// player.play();
+		// player.fullScreen()
+		function closeAutoDrive() {
+			// 开启手动驾驶
+			app.fullscreen = true
+			if (app.isLogin) {
+				document.getElementById('autoControlActive').style.display = 'block'
+				document.getElementById('autoControl').style.display = 'none'
+				app.driveShow = true
+			} else {
+				app.pwdShow = true
+			}
+		}
+
+		function openAutoDrive() {
+			// 关闭手动驾驶
+			document.getElementById('autoControl').style.display = 'block'
+			document.getElementById('autoControlActive').style.display = 'none'
+			app.pwdShow = false
+			app.driveShow = false
+			// app.fullscreen = false
+		}
+	</script>
